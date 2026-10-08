@@ -1,0 +1,23 @@
+[project]
+name = "draw-service"
+version = "0.1.0"
+description = "FastAPI wrapper around draw2's card detection/recognition models for Duel Tavern"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "pydantic",
+    "ultralytics>=8.3.245",
+    "transformers>=4.46.3",
+    "accelerate>=1.0.1",
+    "huggingface_hub",
+    "opencv-python-headless",
+    "pillow",
+    "torch",
+    "numpy",
+]
+
+# detector.py/service.py are run directly (uvicorn service:app), not
+# imported as an installed package - this is dependency management only.
+[tool.uv]
+package = false
