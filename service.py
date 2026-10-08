@@ -1,6 +1,5 @@
 # uvicorn service:app --host 0.0.0.0 --port 8008
 
-import base64
 import json
 import os
 import time
@@ -9,8 +8,8 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi import FastAPI, Query, Request
+from starlette.concurrency import run_in_threadpool
 
 from detector import CardDetector
 
@@ -40,21 +39,15 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
-class DetectRequest(BaseModel):
-    imageBase64: str
-    allowedCardIds: list[str] | None = None
-
-
 @app.post("/detect")
-def detect(req: DetectRequest):
-    _, _, data = req.imageBase64.partition(",")
-    raw = base64.b64decode(data or req.imageBase64)
+async def detect(request: Request, allowedCardIds: list[str] | None = Query(None)):
+    raw = await request.body()
     image_bgr = cv2.imdecode(np.frombuffer(raw, dtype=np.uint8), cv2.IMREAD_COLOR)
     if image_bgr is None:
         return {"detections": []}
 
-    allowed = set(req.allowedCardIds) if req.allowedCardIds else None
-    detections = detector.detect(image_bgr, allowed_card_ids=allowed)
+    allowed = set(allowedCardIds) if allowedCardIds else None
+    detections = await run_in_threadpool(detector.detect, image_bgr, allowed_card_ids=allowed)
     if SAVE_FRAMES_DIR:
         _save_frame(image_bgr, detections)
     return {"detections": detections}

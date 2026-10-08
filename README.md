@@ -24,13 +24,14 @@ the CPU.
 
 ## API
 
-`POST /detect`
+`POST /detect` with the image (JPEG or PNG) as the raw request body:
 
-```json
-{ "imageBase64": "data:image/jpeg;base64,...", "allowedCardIds": ["46986414"] }
+```bash
+curl --data-binary @frame.jpg -H "Content-Type: image/jpeg" "http://localhost:8008/detect?allowedCardIds=46986414"
 ```
 
-`allowedCardIds` is optional and limits recognition to those cards.
+`allowedCardIds` is optional, can be repeated, and limits recognition to
+those cards.
 
 ```json
 {
